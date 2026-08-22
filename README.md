@@ -15,3 +15,5 @@ Project Status
 
 More features and documentation will be added as the project develops.# Bank-Management-System
 C++ OOP based Bank Management System
+
+add initial readme 
