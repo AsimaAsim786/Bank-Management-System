@@ -1,0 +1,711 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <ctime>
+#include <cstdlib>
+#include "utilities.h"
+
+using namespace std;
+
+void printCentered(const string &text, const string &clr = color::reset) {
+    int width = 80;
+    int spaces = (width - (int)text.length()) / 2;
+    if (spaces < 0) spaces = 0;
+    cout << clr;
+    for (int i = 0; i < spaces; i++) cout << " ";
+    cout << text << color::reset << "\n";
+}
+
+void showSuccess(string message) {
+    cout << style::bold << color::green << message << color::reset << endl;
+    cout << style::bold << color::green << "Press any key to continue..." << color::reset;
+    sys::pause();
+}
+
+void showError(string message) {
+    cout << style::bold << color::red << message << color::reset << endl;
+    cout << style::bold << color::red << "Press any key to continue..." << color::reset;
+    sys::pause();
+}
+
+void showInfo(string message) {
+    cout << style::bold << color::cyan << message << color::reset << endl;
+    cout << style::bold << color::cyan << "Press any key to continue..." << color::reset;
+    sys::pause();
+}
+
+string getCurrentDateTime() {
+    time_t now = time(nullptr);
+    tm* localTime = localtime(&now);
+
+    char buffer[30];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
+
+    return string(buffer);
+}
+
+string getNumericPassword(string message) {
+    string pass;
+    while (true) {
+        cout << message;
+        cin >> pass;
+
+        bool allDigits = true;
+        for (int i = 0; i < (int)pass.length(); i++) {
+            if (!isdigit(pass[i])) {
+                allDigits = false;
+                break;
+            }
+        }
+
+        if (pass.empty() || !allDigits) {
+            cout << color::red << "Password must contain numbers only! Try again." << color::reset << endl;
+        }
+        else {
+            return pass;
+        }
+    }
+}
+
+string getAlphabetUsername(string message) {
+    string uname;
+    while (true) {
+        cout << message;
+        cin >> uname;
+
+        bool allAlpha = true;
+        for (int i = 0; i < (int)uname.length(); i++) {
+            if (!isalpha(uname[i])) {
+                allAlpha = false;
+                break;
+            }
+        }
+
+        if (uname.empty() || !allAlpha) {
+            cout << color::red << "Username must contain letters only! Try again." << color::reset << endl;
+        }
+        else {
+            return uname;
+        }
+    }
+}
+
+string getAlphanumericId(string message) {
+    string id;
+    while (true) {
+        cout << message;
+        cin >> id;
+
+        bool valid = true;
+        for (int i = 0; i < (int)id.length(); i++) {
+            if (!isalnum(id[i])) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (id.empty() || !valid) {
+            cout << color::red << "This field must contain letters/numbers only, no spaces or symbols! Try again." << color::reset << endl;
+        }
+        else {
+            return id;
+        }
+    }
+}
+
+string getNumericId(string message) {
+    string id;
+    while (true) {
+        cout << message;
+        cin >> id;
+
+        bool allDigits = true;
+        for (int i = 0; i < (int)id.length(); i++) {
+            if (!isdigit(id[i])) {
+                allDigits = false;
+                break;
+            }
+        }
+
+        if (id.empty() || !allDigits) {
+            cout << color::red << "This field must contain numbers only! Try again." << color::reset << endl;
+        }
+        else {
+            return id;
+        }
+    }
+}
+
+class Transaction {
+private:
+    string accountnum;
+    string datetime;
+    double amount;
+    string type;
+    string sender;
+    string receiver;
+public:
+    Transaction(string accountnum, string datetime, double amount,
+                string type, string sender, string receiver)
+    {
+        this->accountnum = accountnum;
+        this->datetime = datetime;
+        this->amount = amount;
+        this->type = type;
+        this->sender = sender;
+        this->receiver = receiver;
+    }
+    string getaccountnum() { return accountnum; }
+    string getdatetime() { return datetime; }
+    double getamount() { return amount; }
+    string gettype() { return type; }
+    string getsender() { return sender; }
+    string getreceiver() { return receiver; }
+};
+
+class Account {
+protected:
+    string accountnum;
+    string customerid;
+    double currentbalance;
+    string openingdate;
+    vector<Transaction> transactions;
+public:
+    Account(string accountnum, string customerid, double currentbalance, string openingdate) {
+        this->accountnum = accountnum;
+        this->customerid = customerid;
+        this->currentbalance = currentbalance;
+        this->openingdate = openingdate;
+    }
+
+    string getaccountnum() { return accountnum; }
+    string getcustomerid() { return customerid; }
+    double getcurrentbalance() { return currentbalance; }
+    string getopeningdate() { return openingdate; }
+
+    void addTransaction(Transaction transaction) {
+        transactions.push_back(transaction);
+    }
+
+    vector<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    virtual bool deposit(double amount) {
+        if (amount < 0) {
+            return false;
+        }
+        currentbalance = currentbalance + amount;
+
+        Transaction transaction(
+            getaccountnum(),
+            getCurrentDateTime(),
+            amount,
+            "deposit",
+            "",
+            ""
+        );
+        addTransaction(transaction);
+
+        return true;
+    }
+
+    virtual bool withdraw(double amount) {
+        if (amount < 0 || amount > currentbalance) {
+            return false;
+        }
+        currentbalance = currentbalance - amount;
+
+        Transaction transaction(
+            getaccountnum(),
+            getCurrentDateTime(),
+            amount,
+            "withdraw",
+            "",
+            ""
+        );
+        addTransaction(transaction);
+
+        return true;
+    }
+
+    virtual ~Account() {}
+};
+
+class SavingAccount : public Account {
+private:
+    double minimumbalance;
+public:
+    SavingAccount(string accountnum, string customerid, double currentbalance,
+                  string openingdate, double minimumbalance)
+        : Account(accountnum, customerid, currentbalance, openingdate)
+    {
+        this->minimumbalance = minimumbalance;
+    }
+
+    double getminimumbalance() { return minimumbalance; }
+
+    bool withdraw(double amount) override {
+        if (amount < 0 || currentbalance - amount < minimumbalance) {
+            return false;
+        }
+        currentbalance = currentbalance - amount;
+
+        Transaction transaction(
+            getaccountnum(),
+            getCurrentDateTime(),
+            amount,
+            "withdraw",
+            "",
+            ""
+        );
+        addTransaction(transaction);
+
+        return true;
+    }
+};
+
+class Bank;
+
+class TransactionAccount : public Account {
+private:
+    Bank* bank;
+
+public:
+    TransactionAccount(string accountnum, string customerid,
+                       double currentbalance, string openingdate,
+                       Bank* bank)
+        : Account(accountnum, customerid, currentbalance, openingdate)
+    {
+        this->bank = bank;
+    }
+
+    bool transfer(double amount, string destinationAccountNumber);
+};
+
+class Customer {
+private:
+    string customerid;
+    string username;
+    string password;
+    string name;
+    vector<Account*> accounts;
+
+public:
+    Customer(string customerid, string username, string password, string name) {
+        this->customerid = customerid;
+        this->username = username;
+        this->password = password;
+        this->name = name;
+    }
+
+    string getCustomerId() { return customerid; }
+    string getUsername() { return username; }
+    string getName() { return name; }
+    vector<Account*> getAccounts() { return accounts; }
+
+    bool addAccount(Account* account) {
+        accounts.push_back(account);
+        return true;
+    }
+
+    bool checkPassword(string inputUsername, string inputPassword) {
+        return (username == inputUsername && password == inputPassword);
+    }
+
+    void saveToFile(ofstream& outFile) {
+        outFile << customerid << "|" << username << "|" << password << "|" << name << "\n";
+    }
+};
+
+class Bank {
+private:
+    vector<Customer*> customers;
+    vector<Account*> allAccounts;
+
+public:
+    void addCustomer(Customer* customer) {
+        customers.push_back(customer);
+        vector<Account*> custAccounts = customer->getAccounts();
+        for (int i = 0; i < custAccounts.size(); i++) {
+            allAccounts.push_back(custAccounts[i]);
+        }
+    }
+
+    Account* findAccount(string accountnum) {
+        for (int i = 0; i < allAccounts.size(); i++) {
+            if (allAccounts[i]->getaccountnum() == accountnum) {
+                return allAccounts[i];
+            }
+        }
+        return nullptr;
+    }
+
+    void registerNewAccount(Account* account) {
+        allAccounts.push_back(account);
+    }
+
+    Customer* login(string username, string password) {
+        for (int i = 0; i < customers.size(); i++) {
+            if (customers[i]->checkPassword(username, password)) {
+                return customers[i];
+            }
+        }
+        return nullptr;
+    }
+
+    void saveAccounts() {
+        ofstream outFile("accounts.txt");
+        for (int i = 0; i < allAccounts.size(); i++) {
+            outFile << allAccounts[i]->getaccountnum() << "|"
+                    << allAccounts[i]->getcustomerid() << "|"
+                    << allAccounts[i]->getcurrentbalance() << "|"
+                    << allAccounts[i]->getopeningdate() << "\n";
+        }
+        outFile.close();
+    }
+
+    void saveCustomers() {
+        ofstream outFile("customers.txt");
+        for (int i = 0; i < customers.size(); i++) {
+            customers[i]->saveToFile(outFile);
+        }
+        outFile.close();
+    }
+
+    void saveTransactions() {
+        ofstream outFile("transactions.txt", ios::app);
+        for (int i = 0; i < allAccounts.size(); i++) {
+            vector<Transaction> accountTransactions = allAccounts[i]->getTransactions();
+            for (int j = 0; j < accountTransactions.size(); j++) {
+                outFile << accountTransactions[j].getaccountnum() << "|"
+                        << accountTransactions[j].getdatetime() << "|"
+                        << accountTransactions[j].getamount() << "|"
+                        << accountTransactions[j].gettype() << "|"
+                        << accountTransactions[j].getsender() << "|"
+                        << accountTransactions[j].getreceiver() << endl;
+            }
+        }
+        outFile.close();
+    }
+
+    void loadAccounts() {
+        ifstream inFile("accounts.txt");
+        string line;
+
+        while (getline(inFile, line)) {
+            stringstream ss(line);
+            string accountnum, customerid, balanceStr, openingdate;
+
+            getline(ss, accountnum, '|');
+            getline(ss, customerid, '|');
+            getline(ss, balanceStr, '|');
+            getline(ss, openingdate, '|');
+
+            double balance = stod(balanceStr);
+
+            Account* account = new Account(accountnum, customerid, balance, openingdate);
+            allAccounts.push_back(account);
+        }
+        inFile.close();
+    }
+
+    void loadCustomers() {
+        ifstream inFile("customers.txt");
+        string line;
+
+        while (getline(inFile, line)) {
+            stringstream ss(line);
+            string customerid, username, password, name;
+
+            getline(ss, customerid, '|');
+            getline(ss, username, '|');
+            getline(ss, password, '|');
+            getline(ss, name, '|');
+
+            Customer* customer = new Customer(customerid, username, password, name);
+            customers.push_back(customer);
+        }
+        inFile.close();
+    }
+
+    void loadTransactions() {
+        ifstream inFile("transactions.txt");
+        string line;
+
+        while (getline(inFile, line)) {
+            stringstream ss(line);
+
+            string accountnum, datetime, amountStr, type, sender, receiver;
+
+            getline(ss, accountnum, '|');
+            getline(ss, datetime, '|');
+            getline(ss, amountStr, '|');
+            getline(ss, type, '|');
+            getline(ss, sender, '|');
+            getline(ss, receiver, '|');
+
+            double amount = stod(amountStr);
+
+            Transaction transaction(accountnum, datetime, amount, type, sender, receiver);
+
+            Account* account = findAccount(accountnum);
+            if (account != nullptr) {
+                account->addTransaction(transaction);
+            }
+        }
+        inFile.close();
+    }
+};
+
+bool TransactionAccount::transfer(double amount, string destinationAccountNumber) {
+    if (amount < 0 || amount > getcurrentbalance()) {
+        return false;
+    }
+
+    Account* destination = bank->findAccount(destinationAccountNumber);
+
+    if (destination == nullptr) {
+        return false;
+    }
+
+    if (!withdraw(amount)) {
+        return false;
+    }
+
+    if (!destination->deposit(amount)) {
+        deposit(amount);
+
+        return false;
+    }
+
+    Transaction sentTransaction(
+        getaccountnum(),
+        getCurrentDateTime(),
+        amount,
+        "transfer_sent",
+        getaccountnum(),
+        destinationAccountNumber
+    );
+    addTransaction(sentTransaction);
+
+    Transaction receivedTransaction(
+        destination->getaccountnum(),
+        getCurrentDateTime(),
+        amount,
+        "transfer_received",
+        getaccountnum(),
+        destinationAccountNumber
+    );
+    destination->addTransaction(receivedTransaction);
+
+    return true;
+}
+
+void showWelcome() {
+    sys::clearscreen();
+    cout << "\n\n";
+    printCentered("WELCOME TO THE ONLINE BANK MANAGEMENT SYSTEM", style::bold + color::cyan);
+    cout << "\n\n";
+    printCentered("Owned by", style::bold + color::yellow);
+    printCentered("Asima Asim", style::bold + color::yellow);
+    cout << "\n\n";
+    printCentered("Press any key to continue...", style::bold + color::green);
+    sys::pause();
+}
+
+int main() {
+    sys::EnableVirtualTerminalProcessing();
+    showWelcome();
+
+    Bank bank;
+    bank.loadAccounts();
+    bank.loadCustomers();
+    bank.loadTransactions();
+
+    int choice;
+    do {
+        sys::clearscreen();
+        printCentered("=== BANK MENU ===", style::bold + color::cyan);
+        cout << endl;
+        cout << "1. Register New Customer" << endl;
+        cout << "2. Login" << endl;
+        cout << "3. Exit" << endl;
+        choice = sys::getint("Enter choice: ");
+
+        if (choice == 1) {
+            string customerid, username, password, name;
+
+            customerid = getNumericId("Enter Customer ID (numbers only): ");
+            username = getAlphabetUsername("Enter Username (letters only): ");
+            password = getNumericPassword("Enter Password (numbers only): ");
+            cout << "Enter Name: ";
+            cin >> name;
+
+            Customer* newCustomer = new Customer(customerid, username, password, name);
+            bank.addCustomer(newCustomer);
+
+            showSuccess("Registration successful!");
+        }
+        else if (choice == 2) {
+            string username, password;
+            username = getAlphabetUsername("Enter Username: ");
+            password = getNumericPassword("Enter Password: ");
+
+            Customer* loggedInCustomer = bank.login(username, password);
+
+            if (loggedInCustomer == nullptr) {
+                showError("Login failed! Incorrect username or password.");
+            }
+            else {
+                showSuccess("Login successful! Welcome " + loggedInCustomer->getName());
+
+                int loginMenuChoice;
+                do {
+                    cout << "\n1. Create New Account" << endl;
+                    cout << "2. View / Use My Accounts" << endl;
+                    cout << "3. Logout" << endl;
+                    loginMenuChoice = sys::getint("Enter choice: ");
+
+                    if (loginMenuChoice == 1) {
+                        int typeChoice;
+                        cout << "1. Saving Account" << endl;
+                        cout << "2. Transaction Account" << endl;
+                        typeChoice = sys::getint("Select account type: ");
+
+                        string accountnum;
+                        double openingBalance;
+                        accountnum = getNumericId("Enter new Account Number (numbers only): ");
+                        openingBalance = sys::getfloat("Enter opening balance: ");
+
+                        string today = getCurrentDateTime();
+                        Account* newAcc = nullptr;
+
+                        if (typeChoice == 1) {
+                            double minBalance;
+                            minBalance = sys::getfloat("Enter minimum balance requirement: ");
+                            newAcc = new SavingAccount(accountnum, loggedInCustomer->getCustomerId(),
+                                                        openingBalance, today, minBalance);
+                        }
+                        else if (typeChoice == 2) {
+                            newAcc = new TransactionAccount(accountnum, loggedInCustomer->getCustomerId(),
+                                                             openingBalance, today, &bank);
+                        }
+
+                        if (newAcc != nullptr) {
+                            loggedInCustomer->addAccount(newAcc);
+                            bank.registerNewAccount(newAcc);
+                            showSuccess("Account created successfully!");
+                        }
+                        else {
+                            showError("Invalid account type!");
+                        }
+                    }
+                    else if (loginMenuChoice == 2) {
+
+                vector<Account*> custAccounts = loggedInCustomer->getAccounts();
+
+                if (custAccounts.size() == 0) {
+                    showInfo("No accounts found for this customer!");
+                }
+                else {
+                    cout << "Your Accounts:" << endl;
+                    for (int i = 0; i < custAccounts.size(); i++) {
+                        cout << i + 1 << ". Account Number: " << custAccounts[i]->getaccountnum()
+                             << " | Balance: " << custAccounts[i]->getcurrentbalance() << endl;
+                    }
+
+                    int accChoice;
+                    accChoice = sys::getint("Select account (number): ");
+
+                    Account* selectedAccount = custAccounts[accChoice - 1];
+
+                    int accMenuChoice;
+                    do {
+                        cout << "\n1. Deposit" << endl;
+                        cout << "2. Withdraw" << endl;
+                        cout << "3. Check Balance" << endl;
+                        cout << "4. View Transaction History" << endl;
+                        cout << "5. Transfer" << endl;
+                        cout << "6. Back to Main Menu" << endl;
+                        accMenuChoice = sys::getint("Enter choice: ");
+
+                        if (accMenuChoice == 1) {
+                            double amount;
+                            amount = sys::getfloat("Enter amount to deposit: ");
+                            if (selectedAccount->deposit(amount)) {
+                                showSuccess("Deposit successful!");
+                            } else {
+                                showError("Deposit failed!");
+                            }
+                        }
+                        else if (accMenuChoice == 2) {
+                            double amount;
+                            amount = sys::getfloat("Enter amount to withdraw: ");
+                            if (selectedAccount->withdraw(amount)) {
+                                showSuccess("Withdrawal successful!");
+                            } else {
+                                showError("Withdrawal failed!");
+                            }}
+                        else if (accMenuChoice == 3) {
+                            cout << style::bold << color::cyan
+                                 << "Current Balance: " << selectedAccount->getcurrentbalance()
+                                 << color::reset << endl;
+                            cout << style::bold << color::cyan << "Press any key to continue..." << color::reset;
+                            sys::pause();
+                        }
+                        else if (accMenuChoice == 4) {
+                            vector<Transaction> history = selectedAccount->getTransactions();
+                            cout << style::bold << color::cyan << "--- Transaction History ---" << color::reset << endl;
+                            for (int i = 0; i < history.size(); i++) {
+                                cout << history[i].getdatetime() << " | "
+                                     << history[i].gettype() << " | "
+                                     << history[i].getamount() << endl;
+                            }
+                            cout << style::bold << color::cyan << "Press any key to continue..." << color::reset;
+                            sys::pause();
+                        }
+                        else if (accMenuChoice == 5) {
+                            TransactionAccount* transAcc = dynamic_cast<TransactionAccount*>(selectedAccount);
+                            if (transAcc == nullptr) {
+                                showError("This account type does not support transfers!");
+                            }
+                            else {
+                                double amount;
+                                string destAccNum;
+                                amount = sys::getfloat("Enter amount to transfer: ");
+                                destAccNum = getNumericId("Enter destination account number (numbers only): ");
+                                if (transAcc->transfer(amount, destAccNum)) {
+                                    showSuccess("Transfer successful!");
+                                } else {
+                                    showError("Transfer failed!");
+                                }
+                            }
+                        }
+
+                    } while (accMenuChoice != 6);
+                }
+                    }
+                    else if (loginMenuChoice == 3) {
+                        showSuccess("Logout successful!");
+                    }
+
+                } while (loginMenuChoice != 3);
+            }
+        }
+        else if (choice == 3) {
+            bank.saveAccounts();
+            bank.saveCustomers();
+            bank.saveTransactions();
+            showSuccess("Data saved. Exiting...");
+        }
+        else {
+            showError("Invalid choice!");
+        }
+
+    } while (choice != 3);
+
+    return 0;
+}
