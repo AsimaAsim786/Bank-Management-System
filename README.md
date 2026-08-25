@@ -1,75 +1,95 @@
-Bank Management System
+🏦 Bank Management System
 
 A C++ Object-Oriented Programming (OOP) based Bank Management System designed to manage customers, bank accounts, and basic banking transactions.
 
-Introduction
+💡 Project Overview
 
-This project demonstrates the practical use of Object-Oriented Programming concepts in C++ by implementing a simple banking system.
+This project is developed to demonstrate the practical implementation of Object-Oriented Programming concepts in C++ through a simple banking system.
 
-The system manages customers and their accounts while supporting basic banking operations such as deposits, withdrawals, transfers, and transaction history.
+The system manages customers and their accounts and provides basic operations such as deposits, withdrawals, transfers, and transaction history.
 
-Technologies Used
+✨ Features
+
+- 👤 Customer management
+- 🏦 Bank account management
+- 💰 Deposit and withdrawal operations
+- 🔄 Transfer money between accounts
+- 📋 Transaction history
+- 💾 File handling for storing account and transaction data
+- 🔍 Account searching
+- 🧩 Multiple account types
+- 🔐 Object-Oriented Programming based design
+
+🧱 Class Structure
+
+The project is organized around the following main classes:
+
+- Bank class – Manages customers and accounts and provides account searching functionality.
+- Customer class – Stores customer information and manages the customer's accounts.
+- Account class – Base class containing common account information and banking operations.
+- SavingAccount class – Represents a savings account.
+- TransactionAccount class – Represents a transaction/current account.
+- Transaction class – Stores details of banking transactions.
+
+💻 Technologies Used
 
 - C++
 - Object-Oriented Programming (OOP)
+- STL Vector
+- Pointers
 - File Handling
-- STL Vectors
-- PlantUML
+- UML / PlantUML
 
-Main Classes
+🔄 Banking Operations
 
-The system is organized into the following main classes:
+The system supports basic banking operations:
 
-- Bank — Manages customers and accounts.
-- Customer — Stores customer information and associated accounts.
-- Account — Base class for bank accounts and common account operations.
-- SavingAccount — Represents a savings account.
-- TransactionAccount — Represents a transaction/current account.
-- Transaction — Stores information about banking transactions.
+- 💵 Deposit – Adds money to an account.
+- 💸 Withdraw – Removes money from an account after validation.
+- 🔁 Transfer – Transfers money from one account to another.
+- 📜 Transaction History – Keeps a record of account transactions.
 
-Main Features
-
-- Customer management
-- Bank account management
-- Savings and transaction accounts
-- Deposit functionality
-- Withdrawal functionality
-- Money transfer between accounts
-- Transaction history
-- Account and transaction data storage using files
-- Account searching and management
-- Object-Oriented Programming concepts
-
-UML Diagram
+📊 UML Diagram
 
 The UML diagram was created during the initial design phase of the project.
 
-During development, some classes, functions, and relationships were updated according to the implementation. Therefore, the UML diagram was also updated to represent the latest structure and relationships of the project.
+During development, some classes, functions, and relationships were updated according to the actual implementation. Therefore, the UML diagram was also updated to match the latest version of the project.
 
-The updated UML represents the current design of the Bank Management System.
+The updated UML represents the current structure and relationships between the main classes of the Bank Management System.
 
-Project Status
+📁 Project Structure
 
-✅ Completed / Updated
+Bank-Management-System/
+│
+├── Bank Management System.cpp
+├── accounts.txt
+├── transactions.txt
+├── UML Diagram
+└── README.md
 
-The project has been developed and the UML diagram has been updated according to the latest version of the system.
+🎯 OOP Concepts Demonstrated
 
-Learning Outcomes
+- 🔹 Classes & Objects
+- 🔹 Encapsulation
+- 🔹 Inheritance
+- 🔹 Polymorphism
+- 🔹 Constructors
+- 🔹 Pointers
+- 🔹 Class Relationships
+- 🔹 Vectors
+- 🔹 File Handling
 
-Through this project, I practiced:
+📌 Project Status
 
-- Classes and Objects
-- Inheritance
-- Encapsulation
-- Polymorphism
-- Pointers
-- Vectors
-- File Handling
-- Constructors and Member Functions
-- Relationships between classes
-- UML and system design
+✅ Project Completed
 
-Author
+The project has been developed and the UML diagram has been updated according to the latest implementation.
+
+📚 Learning Outcome
+
+This project helped me strengthen my understanding of C++ OOP concepts, class relationships, inheritance, pointers, vectors, file handling, and UML-based system design.
+
+👩‍💻 Author
 
 Asima Asim
 
